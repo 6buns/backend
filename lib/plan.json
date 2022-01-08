@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Small",
+    "max_consumers": 24,
+    "max_producers": 4,
+    "usage_cost": "$0.0002/user/min",
+    "monthly_charge": "$1"
+  },
+  {
+    "name": "Medium",
+    "max_consumers": 112,
+    "max_producers": 8,
+    "usage_cost": "$0.0002/user/min",
+    "monthly_charge": "$1 + ( 0.5% * total_usage_cost )"
+  },
+  {
+    "name": "Large",
+    "max_consumers": 760,
+    "max_producers": 20,
+    "usage_cost": "$0.0001/user/min",
+    "monthly_charge": "$9 + ( 0.5% * total_usage_cost )"
+  },
+  {
+    "name": "X-Large",
+    "max_consumers": 3120,
+    "max_producers": 40,
+    "usage_cost": "$0.0001/user/min",
+    "monthly_charge": "$99 + ( 0.5% * total_usage_cost )"
+  }
+]
