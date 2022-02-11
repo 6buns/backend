@@ -1,0 +1,18 @@
+{
+  "free": {
+    "name": "Free",
+    "max_consumers": 24,
+    "max_producers": 4,
+    "max_room_length": 20,
+    "usage_cost": 0,
+    "monthly_charge": 0
+  },
+  "small": {
+    "name": "Small",
+    "usage_cost": 0.005,
+    "monthly_charge": {
+      "base": 9,
+      "over": 0.5
+    }
+  }
+}
