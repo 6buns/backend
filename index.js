@@ -1,15 +1,15 @@
 const express = require("express");
-const { keygen, keyVerify } = require("./lib/keygen");
+// const { keygen, keyVerify } = require("./lib/keygen");
 const app = express();
-const crypto = require('crypto');
-const jose = require('jose');
+// const crypto = require('crypto');
+// const jose = require('jose');
 
 const db = new Firestore({
     projectId: 'vide-336112',
 });
 
 const { Firestore } = require('@google-cloud/firestore');
-const stripe = require('stripe')('sk_test_51KNlK1SCiwhjjSk0Wh83gIWl21JdXWfH9Gs9NjQr4sos7VTNRocKbvipbqO0LfpnB6NvattHJwLJaajmxNbyAKT900X1bNAggO');
+// const stripe = require('stripe')('sk_test_51KNlK1SCiwhjjSk0Wh83gIWl21JdXWfH9Gs9NjQr4sos7VTNRocKbvipbqO0LfpnB6NvattHJwLJaajmxNbyAKT900X1bNAggO');
 
 app.listen("80", () => {
     console.log("Server Listening on 80");
