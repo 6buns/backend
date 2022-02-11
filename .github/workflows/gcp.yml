@@ -1,8 +1,12 @@
+---
+name: Build and Push Node Image to Google Cloud Platform.
+on:
+  push:
+    branches: [ main ]
 jobs:
-  job_id:
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+  build-push-gcr:
+    name: Build and Push to GCP
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
