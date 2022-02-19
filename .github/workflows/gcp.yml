@@ -4,8 +4,8 @@ on:
   push:
     branches: [ main ]
 jobs:
-  build-push-gcr-saveStat:
-    name: Build and Push to GCP
+  build-push-gcr:
+    name: Build and Push saveStat to GCP
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +23,8 @@ jobs:
         name: 'saveStat'
         runtime: 'nodejs16'
 
-  build-push-gcr-cleanRoomSession:
-    name: Build and Push to GCP
+  build-push-gcr:
+    name: Build and Push cleanRoomSession to GCP
     runs-on: ubuntu-latest
 
     steps:

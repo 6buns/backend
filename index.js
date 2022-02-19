@@ -45,7 +45,7 @@ exports.saveStat = async (req, res) => {
     }
 }
 
-exports.cleanRoomSession = (req, res) => {
+exports.cleanRoomSession = async (req, res) => {
     switch (req.method) {
         case 'POST': {
             const { id, apikey } = req.body;
