@@ -23,8 +23,5 @@ jobs:
         name: 'saveStat'
         runtime: 'nodejs16'
 
-    - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v0'
-      with:
         name: 'cleanRoomSession'
         runtime: 'nodejs16'
