@@ -17,13 +17,13 @@ jobs:
       with:
         credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
-    - id: 'deploy saveStat'
+    - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'saveStat'
         runtime: 'nodejs16'
 
-    - id: 'deploy cleanRoomSession'
+    - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'cleanRoomSession'
