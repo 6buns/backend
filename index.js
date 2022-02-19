@@ -1,15 +1,20 @@
 const express = require("express");
 // const { keygen, keyVerify } = require("./lib/keygen");
 const app = express();
-// const crypto = require('crypto');
+const crypto = require('crypto');
+const Buffer = require('buffer')
 // const jose = require('jose');
 const { Firestore } = require('@google-cloud/firestore');
+const { Storage } = require('@google-cloud/storage');
+const { removeRoom } = require("./lib/redis");
+const jsonfile = require('jsonfile')
 
+const storage = new Storage();
 const db = new Firestore({
     projectId: 'vide-336112',
 });
 
-// const stripe = require('stripe')('sk_test_51KNlK1SCiwhjjSk0Wh83gIWl21JdXWfH9Gs9NjQr4sos7VTNRocKbvipbqO0LfpnB6NvattHJwLJaajmxNbyAKT900X1bNAggO');
+const stripe = require('stripe')('sk_test_51KNlK1SCiwhjjSk0Wh83gIWl21JdXWfH9Gs9NjQr4sos7VTNRocKbvipbqO0LfpnB6NvattHJwLJaajmxNbyAKT900X1bNAggO');
 
 app.listen("80", () => {
     console.log("Server Listening on 80");
@@ -22,8 +27,10 @@ exports.saveStat = async (req, res) => {
         case 'POST': {
             const { roomStat } = req.body;
 
+            const roomStatDecoded = Buffer.from(roomStat, 'base64').toJSON()
+
             db.collection('stats').add({
-                ...roomStat
+                ...roomStatDecoded
             }).then(() => {
                 res.sendStatus(200)
             }).catch(() => {
@@ -38,28 +45,126 @@ exports.saveStat = async (req, res) => {
     }
 }
 
+exports.cleanRoomSession = (req, res) => {
+    switch (req.method) {
+        case 'POST': {
+            const { id, apikey } = req.body;
+            let uid, stripeId;
+
+            const apiKeyHash = crypto.createHash('md5').update(apiKey).digest('hex');
+
+            db.collection('keyStore').doc(apiKeyHash).get().then(doc => {
+                ({ uid, stripeId } = doc.data())
+            }).catch(error => res.status(500).json({ error }))
+
+            // Check Room Data in Redis,
+            // delete from redis if present.
+            await removeRoom(id)
+
+            // Get Stats Data from firestore
+            const statSnapshot = await db.collection('stats').where('name', '==', id).get()
+
+            if (statSnapshot.empty) {
+                res.sendStatus(404)
+            }
+
+            const roomDataJson = {};
+            roomDataJson['name'] = id;
+            const consumers = {};
+            const timestamps = [];
+
+            statSnapshot.docs.forEach(doc => {
+                const stat = doc.data()
+                roomDataJson[doc.id] = stat
+                let consumerCount = [];
+
+                timestamps.push(stat.timestamp)
+
+                stat.peers.forEach(peer => {
+                    consumerCount.push(peer.consumers.length)
+                })
+
+                consumers[stat.routerId] = consumerCount.reduce((x, y) => x > y ? x : y)
+            })
+
+            const consumerCount = Object.values(consumers).reduce((x, y) => x + y)
+            const startAt = timestamps.sort((x, y) => x < y ? x : y)
+            const endAt = timestamps.sort((x, y) => x > y ? x : y)
+
+            const durationInMin = Math.ceil(Math.ceil((endAt - startAt) / 1000) / 60)
+
+            const usageQuantity = Math.ceil(durationInMin * consumerCount)
+
+            roomDataJson['startAt'] = startAt
+            roomDataJson['endAt'] = endAt
+            roomDataJson['consumerCount'] = consumerCount
+            roomDataJson['durationInMin'] = durationInMin
+
+            const fileName = `${id}.json`
+            const filePath = `/tmp/${fileName}`
+
+            const subscriptionItemID = 'sub_1KUrSjSCiwhjjSk0LEQnA4Uz';
+            const idempotencyKey = crypto.randomUUID();
+
+            // Add Usage Data to Stripe Customer Subscription
+            try {
+                await stripe.subscriptionItems.createUsageRecord(
+                    subscriptionItemID,
+                    {
+                        quantity: usageQuantity,
+                        timestamp: endAt,
+                        action: 'increment',
+                    },
+                    {
+                        idempotencyKey,
+                    }
+                );
+
+                roomDataJson['billGenerated'] = true
+            } catch (error) {
+                roomDataJson['billGenerated'] = false
+                roomDataJson['billDetails'] = {
+                    subscriptionItemID,
+                    idempotencyKey
+                }
+                console.error(`Usage report failed for item ID ${subscriptionItemID} with idempotency key ${idempotencyKey}: ${error.toString()}`);
+            }
+
+            // Create a JSON File, and upload to Cloud Storage Bucket
+            jsonfile.writeFile(filePath, obj)
+                .then(res => {
+                    // upload to cloud storage
+                    await storage.bucket(uid).upload(filePath, {
+                        destination: fileName,
+                    });
+                })
+                .catch(error => res.status(500).json({ error }))
+
+            // Delete Stats from Stat db.
+            const batch = db.batch();
+            statSnapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+
+            break;
+        }
+        default:
+            res.sendStatus(404)
+            break;
+    }
+}
+
 // exports.newUserSignup = (event) => {
 //     try {
 //         if (event.email && event.uid) {
 //             // Extract User Details form req object.
 //             const { uid, displayName, phone, email, photoURL } = event;
 
-//             // // Generate a User API Key, - used for logging in rooms
-//             const apiKey = keygen();
-//             const apiKeyHash = crypto.createHash('md5').update(apiKey).digest('hex');
-
-//             // // Store in database.
-//             await db.collection('keyStore').doc(apiKeyHash)
-//                 .set({
-//                     uid: uid,
-//                     type: "account",
-//                     createdAt: Date.now(),
-//                 });
-
-//             // const customer = await stripe.customers.create({
-//             //     name: displayName,
-//             //     email: email,
-//             // });
+//             const customer = await stripe.customers.create({
+//                 name: displayName,
+//                 email: email,
+//             });
 
 //             await db.collection('users').doc(uid).set({
 //                 uid,
@@ -70,6 +175,20 @@ exports.saveStat = async (req, res) => {
 //                 stripe: customer.id,
 //                 services: [],
 //             })
+
+//             // // Generate a User API Key, - used for logging in rooms
+//             const apiKey = keygen();
+//             const apiKeyHash = crypto.createHash('md5').update(apiKey).digest('hex');
+
+//             // // Store in database.
+//             await db.collection('keyStore').doc(apiKeyHash)
+//                 .set({
+//                     uid: uid,
+//                     stripeId: customer.id,
+//                     createdAt: Date.now(),
+//                     updateAt: Date.now()
+//                 });
+
 
 //             res.status(200).json({
 //                 api_key: apiKey,
@@ -112,7 +231,6 @@ exports.saveStat = async (req, res) => {
 //         }
 //     }
 // };
-
 
 // exports.webhookStripe = async (req, res) => {
 //     // Retrieve the event by verifying the signature using the raw body and secret.

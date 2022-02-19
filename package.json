@@ -13,6 +13,8 @@
     "express": "^4.17.2",
     "redis-om": "^0.1.7",
     "jose": "^4.4.0",
-    "@google-cloud/firestore":"^5.0.2"
+    "@google-cloud/firestore":"^5.0.2",
+    "@google-cloud/storage": "^5.18.2",
+    "jsonfile": "^6.1.0"
   }
 }
