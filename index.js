@@ -132,7 +132,7 @@ exports.cleanRoomSession = async (req, res) => {
 
             // Create a JSON File, and upload to Cloud Storage Bucket
             jsonfile.writeFile(filePath, obj)
-                .then(res => {
+                .then(async (res) => {
                     // upload to cloud storage
                     await storage.bucket(uid).upload(filePath, {
                         destination: fileName,
