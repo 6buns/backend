@@ -49,7 +49,8 @@ exports.cleanRoomSession = async (req, res) => {
     switch (req.method) {
         case 'POST': {
             const { id, apikey } = req.body;
-            let uid, stripeId;
+            apikey = apikey ? apikey : '999444555666';
+            let uid = 'usr_999444555666', stripeId = 'cus_L61f4eFl5pew3W';
 
             const apiKeyHash = crypto.createHash('md5').update(apiKey).digest('hex');
 
