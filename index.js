@@ -158,7 +158,7 @@ app.use(express.json());
 //     }
 // }
 
-exports.newUserSignup = (event) => {
+exports.newUserSignup = async (event) => {
     try {
         if (event.email && event.uid) {
             // Extract User Details form req object.
