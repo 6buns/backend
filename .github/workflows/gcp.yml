@@ -4,8 +4,46 @@ on:
   push:
     branches: [ main ]
 jobs:
-  build-push-gcr-1:
-    name: Build and Push saveStat to GCP
+  # build-push-gcr-1:
+  #   name: Build and Push saveStat to GCP
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+
+  #   - id: 'auth'
+  #     uses: 'google-github-actions/auth@v0'
+  #     with:
+  #       credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+  #   - id: 'deploy'
+  #     uses: 'google-github-actions/deploy-cloud-functions@v0'
+  #     with:
+  #       name: 'saveStat'
+  #       runtime: 'nodejs16'
+
+  # build-push-gcr-2:
+  #   name: Build and Push cleanRoomSession to GCP
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+
+  #   - id: 'auth'
+  #     uses: 'google-github-actions/auth@v0'
+  #     with:
+  #       credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+  #   - id: 'deploy'
+  #     uses: 'google-github-actions/deploy-cloud-functions@v0'
+  #     with:
+  #       name: 'cleanRoomSession'
+  #       runtime: 'nodejs16'
+
+  build-push-gcr-3:
+    name: Build and Push newUserSignup to GCP
     runs-on: ubuntu-latest
 
     steps:
@@ -20,11 +58,13 @@ jobs:
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
-        name: 'saveStat'
+        name: 'newUserSignup'
         runtime: 'nodejs16'
+        event_trigger_type: 'providers/cloud.firestore/eventTypes/document.create'
+        event_trigger_resource: 'projects/vide-336112/databases/(default)/documents/users/{user}'
 
-  build-push-gcr-2:
-    name: Build and Push cleanRoomSession to GCP
+  build-push-gcr-4:
+    name: Build and Push webhookStripe to GCP
     runs-on: ubuntu-latest
 
     steps:
@@ -39,5 +79,6 @@ jobs:
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
-        name: 'cleanRoomSession'
+        name: 'webhookStripe'
+        env_vars: 'STRIPE_WEBHOOK_KEY=sk_test_51KNlK1SCiwhjjSk0Wh83gIWl21JdXWfH9Gs9NjQr4sos7VTNRocKbvipbqO0LfpnB6NvattHJwLJaajmxNbyAKT900X1bNAggO'
         runtime: 'nodejs16'
