@@ -59,6 +59,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'newUserSignup'
+        env_vars: 'STRIPE_WEBHOOK_KEY=sk_test_51KNlK1SCiwhjjSk0Wh83gIWl21JdXWfH9Gs9NjQr4sos7VTNRocKbvipbqO0LfpnB6NvattHJwLJaajmxNbyAKT900X1bNAggO'
         runtime: 'nodejs16'
         event_trigger_type: 'providers/cloud.firestore/eventTypes/document.create'
         event_trigger_resource: 'projects/vide-336112/databases/(default)/documents/users/{user}'
