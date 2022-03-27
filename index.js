@@ -162,21 +162,12 @@ exports.newUserSignup = async (event) => {
     try {
         if (event.email && event.uid) {
             // Extract User Details form req object.
-            const { uid, displayName, phone, email, photoURL } = event;
+            const { uid, displayName, phone, email, photoURL } = event.value;
 
             const customer = await stripe.customers.create({
                 name: displayName,
                 email: email,
             });
-
-            await db.collection('users').doc(uid).set({
-                user_id:uid,
-                name: displayName,
-                phone,
-                email,
-                photoURL,
-                stripe_id: customer.id,
-            })
 
             res.status(200).json({
                 customer: customer
