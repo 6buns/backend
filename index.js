@@ -164,14 +164,18 @@ exports.newUserSignup = async (event) => {
             // Extract User Details form req object.
             const { uid, displayName, phone, email, photoURL } = event.value;
 
-            const customer = await stripe.customers.create({
-                name: displayName,
-                email: email,
-            });
+            try {
+                const customer = await stripe.customers.create({
+                    name: displayName,
+                    email: email,
+                });
 
-            res.status(200).json({
-                customer: customer
-            })
+                res.status(200).json({
+                    customer: customer
+                })
+            } catch (error) {
+                res.status(500).json(error)
+            }
         }
     } catch (error) {
         res.status(500).json(error)
@@ -225,7 +229,7 @@ exports.webhookStripe = async (req, res) => {
             }
             break;
         }
-        case 'invoice.payment_action_required' : {
+        case 'invoice.payment_action_required': {
             const customer_id = dataObject.customer
             const prev = await db.collection('keyStore').where('stripe_id', '==', customer_id).get()
             if (!prev.exists) {
